@@ -82,6 +82,13 @@ for t=2:T
   LL1(t) = ll/length(data_win);
   %fprintf('t=%d, ll=%f\n', t, ll);
 end
-
+%采用维特比算法求得概率最大的状态序列
+%First you need to evaluate B(i,t) = P(y_t | Q_t=i) for all t,i:
+B = multinomial_prob(data, obsmat1);
+[path] = viterbi_path(prior1, transmat1{1}, B)
+%统计字符型数组中各行元素出现的频数、频率
+TABLE = tabulate(data);
+%画直方图
+bar(TABLE(:,1),TABLE(:,2))
 LL1(1) = LL1(2); % since initial likelihood is for 1 slice
 plot(1:T, LL1, 'rx-');
