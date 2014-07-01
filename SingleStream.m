@@ -1,3 +1,4 @@
+%%% using the original hmm model learning algorithm
 %   R = RAND(N) returns an N-by-N matrix containing pseudorandom(伪随机) values drawn
 %   from the standard uniform distribution on the open interval(0,1).  RAND(M,N)
 %   or RAND([M,N]) returns an M-by-N matrix.
@@ -8,7 +9,7 @@ multi_data  = load('cl_normal.txt');
 %example on node31
 raw_data = multi_data(32,1500:5762);
 %V={1,2,...,M} 所有可能的观测的个数 |V|
-V = 32;
+V = 18;
 %Q={1,2,...,N} 所有可能得状态的集合 |Q|
 Q = 4; 
 A = 2; %?????
@@ -114,7 +115,7 @@ B = multinomial_prob(data, obsmat1);
 [path] = viterbi_path(prior1, transmat1{1}, B);
  figure(1);
  subplot(2,1,1);
- plot(data(150:288),'r.');
+ plot(thta(150:288),'r.');
  subplot(2,1,2);
  plot(path(150:288),'.');
  hold on;
