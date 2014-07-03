@@ -11,7 +11,7 @@ raw_data = multi_data(32,1500:5762);
 %V={1,2,...,M} 所有可能的观测的个数 |V|
 V = 18;
 %Q={1,2,...,N} 所有可能得状态的集合 |Q|
-Q = 4; 
+Q = 2; 
 A = 2; %?????
 %partial observable Markov decision process 中用到的action 
 %全采用第一个action
@@ -79,6 +79,7 @@ T = length(data);
 w = 2;
 % 0 < decay < 1, with smaller values meaning the past is forgotten more quickly.
 % (We need to decay the old ess, since they were based on out-of-date parameters.)
+%0.1 0.2 0.3 ... 0.9
 decay_sched = [0.1:0.1:0.9];
 
 % Initialize
@@ -88,7 +89,8 @@ dy = data(t);
 data_win = dy;
 act_win = [1]; % arbitrary initial value
 [prior1, LL1(1)] = normalise(prior1 .* obsmat1(:,dy));
-
+%predict observation pdf ：我预测的结果，用概率来表示每一种观测发生的概率
+pre_obs = zeros(1,V);
 % Iterate
 for t=2:T
   dy = data(t);
@@ -107,6 +109,19 @@ for t=2:T
   bel = gamma(:, end);
   LL1(t) = ll/length(data_win);
   %fprintf('t=%d, ll=%f\n', t, ll);
+  %%
+  %%预测
+  bm = multinomial_prob(data_win, obsmat1);
+  [path_win] = viterbi_path(prior1, transmat1{1}, bm);
+  curr_state = path_win(end);
+  %下一个时刻的状态分布
+  [next_state] = transmat1{1}(curr_state,:);
+  %initialize it
+  pre_obs = zeros(1,V);
+  %求下一个时刻观测的概率分布
+  for s=1:Q
+      pre_obs = pre_obs + next_state(s)*obsmat1(s,:);
+  end
 end
 %%
 %采用维特比算法求得概率最大的状态序列
@@ -130,3 +145,6 @@ TABLE = tabulate(data);
 %figure(3);
 LL1(1) = LL1(2); % since initial likelihood is for 1 slice
 %plot(1:T, LL1, 'rx-');
+
+
+
