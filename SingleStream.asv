@@ -89,10 +89,22 @@ dy = data(t);
 data_win = dy;
 act_win = [1]; % arbitrary initial value
 [prior1, LL1(1)] = normalise(prior1 .* obsmat1(:,dy));
-
-% Iterate
+%predict observation pdf ：我预测的结果，用概率来表示每一种观测发生的概率
+pre_obs = zeros(1,V);
+%statistic for miscounting
+min_thred_pro = 0.005;
+bar_width = 20;
+mis_cnt = zeros(1,T);
+%% Iterate
 for t=2:T
   dy = data(t);
+  %check if the predictor is right
+  if(t>2)
+      if(pre_obs(dy)<min_thred_pro) 
+          mis_cnt(floor((t-3)/20)) = mis_cnt+1;
+      end
+  end
+  
   a = act(t);
   if t <= w
     data_win = [data_win dy];
@@ -115,9 +127,12 @@ for t=2:T
   curr_state = path_win(end);
   %下一个时刻的状态分布
   [next_state] = transmat1{1}(curr_state,:);
-  next
+  %initialize it
+  pre_obs = zeros(1,V);
+  %求下一个时刻观测的概率分布
   for s=1:Q
-      obsmat1(next_state(s),:)
+      pre_obs = pre_obs + next_state(s)*obsmat1(s,:);
+  end
 end
 %%
 %采用维特比算法求得概率最大的状态序列

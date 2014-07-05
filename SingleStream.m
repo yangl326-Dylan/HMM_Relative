@@ -91,9 +91,21 @@ act_win = [1]; % arbitrary initial value
 [prior1, LL1(1)] = normalise(prior1 .* obsmat1(:,dy));
 %predict observation pdf ：我预测的结果，用概率来表示每一种观测发生的概率
 pre_obs = zeros(1,V);
-% Iterate
+%statistic for miscounting
+min_thred_pro = 0.001;
+bar_width = 20;
+mis_cnt = zeros(1,floor((T-3)/bar_width)+1);
+%% Iterate
 for t=2:T
   dy = data(t);
+  %check if the predictor is right
+  if(t>2)
+      if(pre_obs(dy)<min_thred_pro) 
+          idx = floor((t-3)/bar_width)+1;
+          mis_cnt(idx) = mis_cnt(idx)+1;
+      end
+  end
+  
   a = act(t);
   if t <= w
     data_win = [data_win dy];
