@@ -3,7 +3,7 @@
 %   from the standard uniform distribution on the open interval(0,1).  RAND(M,N)
 %   or RAND([M,N]) returns an M-by-N matrix.
 %
-
+clear all;
 %载入所有数据
 multi_data  = load('cl_normal.txt');
 %example on node31
@@ -11,7 +11,7 @@ raw_data = multi_data(32,1500:5762);
 %V={1,2,...,M} 所有可能的观测的个数 |V|
 V = 18;
 %Q={1,2,...,N} 所有可能得状态的集合 |Q|
-Q = 2; 
+Q = 4; 
 A = 2; %?????
 %partial observable Markov decision process 中用到的action 
 %全采用第一个action
@@ -38,20 +38,7 @@ unit = 180/(V-1);  %离散化成18个状态（注意区分这里得状态和hmm中的状态）
 %%
 %%cl 浓度数据需要离散化
 %%，这块地方需要修改。需要加大窗口，不能单独将相连的两个点拟合成一条直线，这样的话在锯齿形的波动数据下，是没有什么意义的离散！！！
-% len = length(raw_data);
-% data = zeros(1,floor(len/2));
-% thta = zeros(1,floor(len/2));
-% unit = 180/V;  %离散化成18个状态（注意区分这里得状态和hmm中的状态）
-% for t= 1:len/2
-%     y1 = raw_data(2*t-1);
-%     y2 = raw_data(2*t);
-%     thta(t) = atand((y1-y2)*100); %求斜率角
-%     if(thta(t)<0)
-%         thta(t) = 180+thta(t);
-%     end
-%     data(t) = ceil(thta(t)/unit) + 1; 
-% end
-%plot(data,'*');
+
 len = length(raw_data) - dis_win;
 data = zeros(1,floor(len/sid_win));
 thta = zeros(1,floor(len/sid_win)); %斜夹角
@@ -93,16 +80,15 @@ act_win = [1]; % arbitrary initial value
 pre_obs = zeros(1,V);
 %statistic for miscounting
 min_thred_pro = 0.001;
-bar_width = 20;
-mis_cnt = zeros(1,floor((T-3)/bar_width)+1);
+mis_total = 0;
+flag = 0; % mark if to continously check in the next 10 step
 %% Iterate
 for t=2:T
   dy = data(t);
   %check if the predictor is right
   if(t>2)
       if(pre_obs(dy)<min_thred_pro) 
-          idx = floor((t-3)/bar_width)+1;
-          mis_cnt(idx) = mis_cnt(idx)+1;
+          mis_total = mis_total+1;
       end
   end
   
