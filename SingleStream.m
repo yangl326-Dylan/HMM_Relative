@@ -6,12 +6,14 @@
 clear all;
 %载入所有数据
 multi_data  = load('cl_normal.txt');
+%multi_data  = load('synthesis_comtamination&normal_p31_5199t_240i.txt');
+
 %example on node31
 raw_data = multi_data(32,1500:5762);
 %V={1,2,...,M} 所有可能的观测的个数 |V|
 V = 18;
 %Q={1,2,...,N} 所有可能得状态的集合 |Q|
-Q = 4; 
+Q = 3;
 A = 2; %?????
 %partial observable Markov decision process 中用到的action 
 %全采用第一个action
@@ -81,6 +83,8 @@ pre_obs = zeros(1,V);
 %statistic for miscounting
 min_thred_pro = 0.001;
 mis_total = 0;
+mis_con_two = 0; %表示所有连续出现预测不准的case的总次数
+mis_con_flag = 0; %表示连续出现预测不准的连续次数
 flag = 0; % mark if to continously check in the next 10 step
 %% Iterate
 for t=2:T
@@ -89,6 +93,13 @@ for t=2:T
   if(t>2)
       if(pre_obs(dy)<min_thred_pro) 
           mis_total = mis_total+1;
+          if(mis_con_flag >= 1) 
+              fprintf('%d : %d\n',t, mis_con_flag);
+              mis_con_two = mis_con_two + 1;
+          end
+          mis_con_flag = mis_con_flag+1;
+      else
+          mis_con_flag = 0;
       end
   end
   
@@ -126,12 +137,12 @@ end
 %First you need to evaluate B(i,t) = P(y_t | Q_t=i) for all t,i:
 B = multinomial_prob(data, obsmat1);
 [path] = viterbi_path(prior1, transmat1{1}, B);
- figure(1);
- subplot(2,1,1);
- plot(thta(150:288),'r.');
- subplot(2,1,2);
- plot(path(150:288),'.');
- hold on;
+ %figure(1);
+ %subplot(2,1,1);
+ %plot(thta(150:288),'r.');
+ %subplot(2,1,2);
+ %plot(path(150:288),'.');
+ %hold on;
 %%
 %%分析数据特征
 %统计字符型数组中各行元素出现的频数、频率

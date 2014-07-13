@@ -5,13 +5,13 @@
 %
 clear all;
 %载入所有数据
-multi_data  = load('cl_normal.txt');
-%multi_data  = load('synthesis_comtamination&normal_p31_5199t_240i.txt');
+%multi_data  = load('cl_normal.txt');
+multi_data  = load('synthesis_comtamination&normal_p58_3663t_240i.txt');
 
 %example on node31
-raw_data = multi_data(32,1500:5762);
+raw_data = multi_data(59,1500:5762);
 %V={1,2,...,M} 所有可能的观测的个数 |V|
-V = 18;
+V = 30;
 %Q={1,2,...,N} 所有可能得状态的集合 |Q|
 Q = 3;
 A = 2; %?????
@@ -34,31 +34,26 @@ for a=1:A
   ess_trans{a} = repmat(e, Q, Q);
 end
 ess_emit = repmat(e, Q, V);
-dis_win = 15;
-sid_win = 3;
-unit = 180/(V-1);  %离散化成18个状态（注意区分这里得状态和hmm中的状态）
+
+sid_win = 6;
+unit = 1/V;  %每一种状态的range
 %%
 %%cl 浓度数据需要离散化
 %%，这块地方需要修改。需要加大窗口，不能单独将相连的两个点拟合成一条直线，这样的话在锯齿形的波动数据下，是没有什么意义的离散！！！
-
-len = length(raw_data) - dis_win;
+%% version 2 ，继续改动，因为异常极有可能只是造成了数据的偏移，在这种情况下，相邻数据的斜率变化很小，这种异常就无法识别出来！！！
+%% version 2 ，还是直接按照他们的数值大小来表示离散化，虽然同一个数值 可能有上升的趋势，也有下降的趋势，但是他们背后隐藏的状态可能是不同的！！（有待验证）
+len = length(raw_data);
 data = zeros(1,floor(len/sid_win));
-thta = zeros(1,floor(len/sid_win)); %斜夹角
-pk = zeros(1,floor(len/sid_win)); %斜率
+
 for t = 1:floor(len/sid_win)
-    start_index = 1+(t-1)*3;
-    end_index = start_index+dis_win -1;
-    x = raw_data(1,start_index:end_index);
-    %X_new = (x - mean(x))/std(x);
-    y = linspace(0.01,0.12,dis_win);
-    %Y_new = (y - mean(y))/std(y);
-    p = polyfit(x,y,1);%一次拟合
-    pk(t) = p(1);
-    thta(t) = atand(p(1)); %p(1)是斜率
-    if(thta(t)<0)
-        thta(t) = 180+thta(t);
+    start_index = 1+(t-1)*sid_win;
+    end_index = start_index+sid_win -1;
+    x = mean(raw_data(1,start_index:end_index)); %求均值
+    if(x == 0)
+        data(t) = 1;
+    else
+        data(t) = ceil(x/unit);  %%>=后面的整数
     end
-    data(t) = ceil(thta(t)/unit) + 1; 
 end
 %plot(data,'.');
 %%
