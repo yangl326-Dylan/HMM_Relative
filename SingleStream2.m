@@ -5,13 +5,13 @@
 %
 clear all;
 %载入所有数据
-%multi_data  = load('cl_normal.txt');
-multi_data  = load('synthesis_comtamination&normal_p58_3663t_240i.txt');
+multi_data  = load('cl_normal.txt');
+%multi_data  = load('synthesis_comtamination&normal_p58_3663t_240i.txt');
 
 %example on node31
-raw_data = multi_data(59,1500:5762);
+raw_data = multi_data(32,1500:5762);
 %V={1,2,...,M} 所有可能的观测的个数 |V|
-V = 30;
+V = 10;
 %Q={1,2,...,N} 所有可能得状态的集合 |Q|
 Q = 3;
 A = 2; %?????
@@ -86,10 +86,11 @@ for t=2:T
   dy = data(t);
   %check if the predictor is right
   if(t>2)
+       fprintf('%d :\n',pre_obs(dy));
       if(pre_obs(dy)<min_thred_pro) 
           mis_total = mis_total+1;
           if(mis_con_flag >= 1) 
-              fprintf('%d : %d\n',t, mis_con_flag);
+              % fprintf('%d : %d\n',t, mis_con_flag);
               mis_con_two = mis_con_two + 1;
           end
           mis_con_flag = mis_con_flag+1;
